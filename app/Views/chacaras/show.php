@@ -145,7 +145,7 @@
             </div>
 
             <?php if (isset($_SESSION['usuario_id'])): ?>
-                <form method="POST" action="<?= BASE_URL ?>/chacaras/<?= $chacara['id'] ?>/reservar">
+                <form method="GET" action="<?= BASE_URL ?>/chacaras/<?= $chacara['id'] ?>/checkout">
 
                     <div class="sf-date-grid mb-3">
                         <div class="sf-date-cell" style="border-right:1px solid var(--sf-border);">
@@ -172,7 +172,7 @@
 
                     <div class="d-grid">
                         <button class="btn btn-primary btn-lg fw-bold" type="submit">
-                            Solicitar Reserva
+                            Verificar disponibilidade
                         </button>
                     </div>
 

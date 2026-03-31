@@ -28,7 +28,9 @@ $router->post('/locador/reservas/{id}/confirmar',      ['ReservaController', 'co
 $router->post('/locador/reservas/{id}/recusar',        ['ReservaController', 'recusar']);
 
 // ── Área do Cliente ──────────────────────────────────────────────────────────
+$router->get('/chacaras/{id}/checkout',  ['ReservaController', 'checkoutForm']);
 $router->post('/chacaras/{id}/reservar', ['ReservaController', 'store']);
+$router->get('/reservas/{id}/confirmacao', ['ReservaController', 'confirmacao']);
 $router->get('/minhas-reservas',         ['ReservaController', 'historico']);
 $router->post('/reservas/{id}/cancelar', ['ReservaController', 'cancelar']);
 $router->post('/reservas/{id}/avaliar',  ['AvaliacaoController', 'store']);

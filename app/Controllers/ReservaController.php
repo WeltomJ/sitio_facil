@@ -11,6 +11,48 @@ use App\Models\Reserva;
 
 class ReservaController extends Controller
 {
+    /** Exibe a tela de checkout (resumo + pagamento) */
+    public function checkoutForm(string $chacaraId): void
+    {
+        $this->requirePerfil('CLIENTE');
+
+        $chacaraModel = new Chacara();
+        $chacara      = $chacaraModel->findComDetalhes((int) $chacaraId);
+
+        if (!$chacara || !$chacara['ativa']) {
+            http_response_code(404);
+            return;
+        }
+
+        $dataInicio  = trim($_GET['data_inicio'] ?? '');
+        $dataFim     = trim($_GET['data_fim']    ?? '');
+        $qtdHospedes = max(1, (int) ($_GET['qtd_hospedes'] ?? 1));
+
+        // Validações básicas
+        if ($dataInicio < date('Y-m-d') || $dataFim < $dataInicio) {
+            $this->flashError('Datas inválidas. Verifique o período selecionado.');
+            $this->redirect(BASE_URL . '/chacaras/' . $chacaraId);
+        }
+
+        $dias       = (int) ((strtotime($dataFim) - strtotime($dataInicio)) / 86400) + 1;
+        $valorTotal = $dias * (float) $chacara['preco_diaria'];
+
+        // Foto de capa para exibição
+        $fotos = $chacaraModel->getFotos((int) $chacaraId);
+        $foto  = $fotos[0] ?? null;
+
+        $this->view('reservas.finalizar', [
+            'pageTitle'   => 'Confirmar reserva — Sítio Fácil',
+            'chacara'     => $chacara,
+            'foto'        => $foto,
+            'dataInicio'  => $dataInicio,
+            'dataFim'     => $dataFim,
+            'qtdHospedes' => $qtdHospedes,
+            'dias'        => $dias,
+            'valorTotal'  => $valorTotal,
+        ]);
+    }
+
     /** Cliente solicita reserva (status inicial = PENDENTE) */
     public function store(string $chacaraId): void
     {
@@ -25,7 +67,7 @@ class ReservaController extends Controller
         }
 
         $dataInicio = $_POST['data_inicio'] ?? '';
-        $dataFim    = $_POST['data_fim'] ?? '';
+        $dataFim    = $_POST['data_fim']    ?? '';
 
         if ($dataInicio < date('Y-m-d') || $dataFim < $dataInicio) {
             $this->flashError('Datas inválidas. Verifique o período selecionado.');
@@ -34,6 +76,11 @@ class ReservaController extends Controller
 
         $dias       = (int) ((strtotime($dataFim) - strtotime($dataInicio)) / 86400) + 1;
         $valorTotal = $dias * (float) $chacara['preco_diaria'];
+
+        // Método de pagamento informado pelo checkout
+        $metodoBruto = strtoupper(trim($_POST['metodo_pagamento'] ?? 'SIMULADO'));
+        $metodosValidos = ['PIX', 'CARTAO', 'SIMULADO', 'MANUAL'];
+        $metodo = in_array($metodoBruto, $metodosValidos, true) ? $metodoBruto : 'SIMULADO';
 
         $reservaModel = new Reserva();
         $id = $reservaModel->insert([
@@ -48,13 +95,16 @@ class ReservaController extends Controller
 
         $reservaModel->registrarHistorico($id, (int) $_SESSION['usuario_id'], 'CRIADA');
 
-        // Cria registro de pagamento simulado
+        // Cria registro de pagamento com metodo escolhido
         (new Pagamento())->insert([
             'reserva_id' => $id,
             'valor'      => $valorTotal,
-            'metodo'     => 'SIMULADO',
-            'status'     => 'PENDENTE',
+            'metodo'     => $metodo,
+            'status'     => 'PAGO',
+            'pago_em'    => date('Y-m-d H:i:s'),
         ]);
+
+        $reservaModel->registrarHistorico($id, (int) $_SESSION['usuario_id'], 'PAGAMENTO_REALIZADO');
 
         // Notifica o locador
         (new Notificacao())->enviar(
@@ -63,8 +113,30 @@ class ReservaController extends Controller
             "Você recebeu uma nova solicitação para \"{$chacara['nome']}\" de {$dataInicio} a {$dataFim}."
         );
 
-        $this->flashSuccess('Reserva solicitada com sucesso! Aguarde a confirmação do locador.');
-        $this->redirect(BASE_URL . '/minhas-reservas');
+        $this->redirect(BASE_URL . '/reservas/' . $id . '/confirmacao');
+    }
+
+    /** Exibe a tela de confirmação pós-pagamento */
+    public function confirmacao(string $id): void
+    {
+        $this->requireAuth();
+
+        $reserva = (new Reserva())->findComDetalhes((int) $id);
+
+        if (!$reserva || (int) $reserva['cliente_id'] !== (int) $_SESSION['usuario_id']) {
+            http_response_code(403);
+            return;
+        }
+
+        $pagamento = (new Pagamento())->findByReserva((int) $id);
+        $dias = (int) ((strtotime($reserva['data_fim']) - strtotime($reserva['data_inicio'])) / 86400) + 1;
+
+        $this->view('reservas.confirmacao', [
+            'pageTitle' => 'Reserva confirmada — Sítio Fácil',
+            'reserva'   => $reserva,
+            'pagamento' => $pagamento ?: ['metodo' => 'SIMULADO', 'status' => 'PAGO'],
+            'dias'      => $dias,
+        ]);
     }
 
     /** Histórico de reservas do cliente */
