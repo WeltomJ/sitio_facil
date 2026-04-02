@@ -150,14 +150,66 @@ class ReservaController extends Controller
         ]);
     }
 
-    /** Lista de reservas recebidas pelo locador */
+    /** Lista de reservas recebidas pelo locador com estatísticas */
     public function indexLocador(): void
     {
         $this->requirePerfil('LOCADOR');
-        $reservas = (new Reserva())->findByLocador((int) $_SESSION['usuario_id']);
+
+        $reservaModel = new Reserva();
+        $chacaraModel = new Chacara();
+        $locadorId = (int) $_SESSION['usuario_id'];
+
+        // Reservas recentes (pendentes e confirmadas)
+        $reservas = $reservaModel->findByLocador($locadorId);
+
+        // Estatísticas
+        $estatisticas = $reservaModel->getEstatisticasLocador($locadorId);
+
+        // Lista de chácaras para filtro
+        $chacaras = $chacaraModel->findByLocador($locadorId);
+
         $this->view('reservas.index_locador', [
-            'pageTitle' => 'Reservas Recebidas',
-            'reservas'  => $reservas,
+            'pageTitle'    => 'Reservas Recebidas',
+            'reservas'     => $reservas,
+            'estatisticas' => $estatisticas,
+            'chacaras'     => $chacaras,
+        ]);
+    }
+
+    /** Histórico completo de reservas do locador */
+    public function historicoLocador(): void
+    {
+        $this->requirePerfil('LOCADOR');
+
+        $reservaModel = new Reserva();
+        $chacaraModel = new Chacara();
+        $locadorId = (int) $_SESSION['usuario_id'];
+
+        // Filtros
+        $filtros = [
+            'status'     => $_GET['status'] ?? '',
+            'chacara_id' => $_GET['chacara_id'] ?? '',
+            'data_inicio' => $_GET['data_inicio'] ?? '',
+            'data_fim'   => $_GET['data_fim'] ?? '',
+            'busca'      => trim($_GET['busca'] ?? ''),
+            'ordenar'    => $_GET['ordenar'] ?? 'recentes',
+        ];
+
+        // Buscar reservas com filtros
+        $reservas = $reservaModel->buscarHistoricoLocador($locadorId, array_filter($filtros));
+
+        // Estatísticas
+        $estatisticas = $reservaModel->getEstatisticasLocador($locadorId);
+
+        // Lista de chácaras para filtro
+        $chacaras = $chacaraModel->findByLocador($locadorId);
+
+        $this->view('reservas.historico_locador', [
+            'pageTitle'    => 'Histórico de Reservas',
+            'reservas'     => $reservas,
+            'estatisticas' => $estatisticas,
+            'chacaras'     => $chacaras,
+            'filtros'      => $filtros,
         ]);
     }
 

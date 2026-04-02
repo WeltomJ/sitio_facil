@@ -104,7 +104,12 @@
                                 </li>
                                 <li>
                                     <a class="dropdown-item" href="<?= BASE_URL ?>/locador/reservas">
-                                        <i class="fas fa-list me-2 text-muted"></i> Reservas Recebidas
+                                        <i class="fas fa-list me-2 text-muted"></i> Gerenciar Reservas
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="<?= BASE_URL ?>/locador/reservas/historico">
+                                        <i class="fas fa-chart-bar me-2 text-muted"></i> Histórico & Estatísticas
                                     </a>
                                 </li>
                                 <li>
