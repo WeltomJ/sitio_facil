@@ -51,6 +51,11 @@
                         <i class="fas fa-search me-1"></i> Buscar Chácaras
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="<?= BASE_URL ?>/localizacao">
+                        <i class="fas fa-map-marker-alt me-1"></i> Explorar Manaus
+                    </a>
+                </li>
             </ul>
 
             <ul class="navbar-nav align-items-lg-center gap-1">
