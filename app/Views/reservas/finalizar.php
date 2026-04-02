@@ -75,10 +75,7 @@ $pixQrUrl     = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin
                             class="sf-pay-tab"
                             data-method="pix"
                             aria-pressed="false">
-                        <svg width="16" height="16" viewBox="0 0 512 512" fill="currentColor" class="me-1" style="vertical-align:-.15em">
-                            <path d="M112.57 391.19c20.056 0 38.928-7.808 53.12-22l74.982-74.982c5.206-5.206 14.146-5.198 19.344 0l75.238 75.238c14.192 14.192 33.064 22 53.12 22h14.972l-95.048 95.046c-29.454 29.454-77.218 29.454-106.674 0l-95.29-95.302h6.236zm286.86-271.38c-20.056 0-38.928 7.808-53.12 22l-75.238 75.24c-5.332 5.332-13.866 5.42-19.166.248-.082-.082-.166-.166-.248-.248L176.572 141.814c-14.192-14.192-33.064-22-53.12-22h-6.228l95.29-95.302c29.454-29.454 77.218-29.454 106.674 0l95.048 95.046-14.8.262zm35.12 44.934-46.334-46.334h-8.356c-14.668 0-28.458 5.712-38.828 16.082l-75.238 75.24c-8.56 8.558-19.892 13.278-31.938 13.278-12.046 0-23.378-4.72-31.948-13.29L126.9 134.502c-10.37-10.37-24.16-16.082-38.83-16.082H79.45L33.118 164.752c-29.454 29.454-29.454 77.22 0 106.674l46.332 46.332h8.356c14.668 0 28.458-5.712 38.828-16.082l74.982-74.982c8.56-8.56 19.892-13.28 31.94-13.28 12.046 0 23.378 4.72 31.948 13.288l75.238 75.24c10.37 10.37 24.16 16.082 38.83 16.082h8.356l46.334-46.334c29.452-29.454 29.452-77.22-.002-106.674z"/>
-                        </svg>
-                        PIX
+                        <i class="fa-brands fa-pix me-1"></i> PIX
                     </button>
                 </div>
 
@@ -285,7 +282,7 @@ $pixQrUrl     = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin
             <!-- Chácara header -->
             <div class="d-flex gap-3 align-items-center mb-4">
                 <?php if (!empty($foto)): ?>
-                    <img src="<?= htmlspecialchars($foto['url']) ?>"
+                    <img src="<?= BASE_URL . htmlspecialchars($foto['url']) ?>"
                          alt="<?= htmlspecialchars($chacara['nome']) ?>"
                          class="rounded-3 flex-shrink-0"
                          style="width:72px; height:72px; object-fit:cover;">

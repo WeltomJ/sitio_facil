@@ -56,7 +56,7 @@
                 <a href="<?= BASE_URL ?>/chacaras/<?= $c['id'] ?>" class="sf-card-link card h-100 text-decoration-none">
                     <div class="sf-card-img-wrap">
                         <?php if (!empty($c['capa'])): ?>
-                            <img src="<?= htmlspecialchars($c['capa']) ?>"
+                            <img src="<?= BASE_URL . htmlspecialchars($c['capa']) ?>"
                                  alt="<?= htmlspecialchars($c['nome']) ?>"
                                  loading="lazy" class="sf-card-img">
                         <?php else: ?>

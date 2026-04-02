@@ -255,4 +255,15 @@ class ReservaController extends Controller
         $this->flashSuccess('Reserva cancelada.');
         $this->redirect(BASE_URL . '/minhas-reservas');
     }
+
+    /** Retorna os intervalos de datas ocupadas de uma chácara (JSON público) */
+    public function datasOcupadas(string $chacaraId): void
+    {
+        header('Content-Type: application/json');
+        $model  = new Reserva();
+        $ranges = $model->getDatasOcupadas((int) $chacaraId);
+        echo json_encode(
+            array_map(fn($r) => ['from' => $r['data_inicio'], 'to' => $r['data_fim']], $ranges)
+        );
+    }
 }

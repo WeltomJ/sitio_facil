@@ -14,7 +14,7 @@
             <div class="card-body p-4">
                 <h1 class="h5 fw-bold mb-4">Informações básicas</h1>
 
-                <form method="POST" action="<?= BASE_URL ?>/cadastro" novalidate>
+                <form id="form-cadastro" method="POST" action="<?= BASE_URL ?>/cadastro" novalidate>
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
@@ -45,7 +45,7 @@
                             <label class="form-label fw-semibold" for="telefone">Telefone (opcional)</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-phone text-muted"></i></span>
-                                <input class="form-control" type="tel" id="telefone" name="telefone" autocomplete="tel" placeholder="(92) 99999-9999">
+                                <input class="form-control maskPhone" type="tel" id="telefone" name="telefone" autocomplete="tel" placeholder="(92) 99999-9999">
                             </div>
                         </div>
                     </div>
@@ -62,7 +62,7 @@
                             <label class="form-label fw-semibold" for="cpf_cnpj">CPF / CNPJ</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-id-card text-muted"></i></span>
-                                <input class="form-control" type="text" id="cpf_cnpj" name="cpf_cnpj" required placeholder="000.000.000-00">
+                                <input class="form-control maskCpf" type="text" id="cpf_cnpj" name="cpf_cnpj" required placeholder="000.000.000-00">
                             </div>
                         </div>
                     </div>
@@ -104,3 +104,64 @@
         </p>
     </div>
 </div>
+
+<script>
+    $(function() {
+        $("#tipo_pessoa").change(function() {
+            const tipo = $(this).val();
+            const cpfCnpjInput = $("#cpf_cnpj");
+            cpfCnpjInput.val('');
+            if (tipo === 'PF') {
+                cpfCnpjInput.removeClass('maskCnpj').addClass('maskCpf');
+            } else {
+                cpfCnpjInput.removeClass('maskCpf').addClass('maskCnpj');
+            }
+        }).trigger('change');
+
+        validateForm({
+            formSelector: '#form-cadastro',
+            rules: {
+                nome: {
+                    required: true,
+                    minlength: 3
+                },
+                email: {
+                    required: true,
+                    email: true
+                },
+                senha: {
+                    required: true,
+                    minlength: 6
+                },
+                cpf_cnpj: {
+                    required: true,
+                    cpfCnpj: true,
+                },
+                tipo_pessoa: {
+                    required: true
+                },
+            },
+            message: {
+                nome: {
+                    required: 'Informe seu nome completo.',
+                    minlength: 'Mínimo 3 caracteres.'
+                },
+                email: {
+                    required: 'Informe seu e-mail.',
+                    email: 'E-mail inválido.'
+                },
+                senha: {
+                    required: 'Informe uma senha.',
+                    minlength: 'A senha deve ter no mínimo 6 caracteres.'
+                },
+                cpf_cnpj: {
+                    required: 'Informe o CPF ou CNPJ.',
+                    cpfCnpj: (value, element) => {
+                        const tipo = $("#tipo_pessoa").val();
+                        return tipo === 'PF' ? 'CPF inválido.' : 'CNPJ inválido.';
+                    }
+                },
+            },
+        });
+    });
+</script>

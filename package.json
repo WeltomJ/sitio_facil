@@ -1,11 +1,13 @@
 {
-  "scripts": {
-    "setup": "node scripts/copy-assets.js"
-  },
-  "dependencies": {
-    "@fortawesome/fontawesome-free": "^7.2.0",
-    "bootstrap": "^5.3.8",
-    "bulma": "^1.0.4",
-    "jquery": "^4.0.0"
-  }
+    "scripts": {
+        "setup": "node scripts/copy-assets.js",
+        "build": "node scripts/copy-assets.js"
+    },
+    "dependencies": {
+        "@fortawesome/fontawesome-free": "^7.2.0",
+        "bootstrap": "^5.3.8",
+        "jquery": "^4.0.0",
+        "jquery-validation": "^1.22.1",
+        "moment": "^2.30.1"
+    }
 }

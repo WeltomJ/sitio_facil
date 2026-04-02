@@ -77,6 +77,24 @@ class Reserva extends Model
         return (int) $stmt->fetchColumn() > 0;
     }
 
+    /**
+     * Retorna os intervalos de datas bloqueados (reservas CONFIRMADAS futuras).
+     * Usado para desabilitar datas no calendário de reservas.
+     */
+    public function getDatasOcupadas(int $chacaraId): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT data_inicio, data_fim
+            FROM reservas
+            WHERE chacara_id = ?
+              AND status = 'CONFIRMADA'
+              AND data_fim >= CURDATE()
+            ORDER BY data_inicio
+        ");
+        $stmt->execute([$chacaraId]);
+        return $stmt->fetchAll();
+    }
+
     public function registrarHistorico(int $reservaId, int $usuarioId, string $acao, ?string $observacao = null): void
     {
         $this->db->prepare("

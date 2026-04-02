@@ -22,6 +22,8 @@ $router->get('/locador/chacaras/nova',         ['ChacaraController', 'create']);
 $router->post('/locador/chacaras',             ['ChacaraController', 'store']);
 $router->get('/locador/chacaras/{id}/editar',  ['ChacaraController', 'edit']);
 $router->post('/locador/chacaras/{id}',        ['ChacaraController', 'update']);
+$router->post('/locador/chacaras/{id}/fotos/{fotoId}/excluir',   ['ChacaraController', 'excluirFoto']);
+$router->post('/locador/chacaras/{id}/fotos/{fotoId}/principal', ['ChacaraController', 'definirFotoPrincipal']);
 
 $router->get('/locador/reservas',                      ['ReservaController', 'indexLocador']);
 $router->post('/locador/reservas/{id}/confirmar',      ['ReservaController', 'confirmar']);
@@ -29,6 +31,7 @@ $router->post('/locador/reservas/{id}/recusar',        ['ReservaController', 're
 
 // ── Área do Cliente ──────────────────────────────────────────────────────────
 $router->get('/chacaras/{id}/checkout',  ['ReservaController', 'checkoutForm']);
+$router->get('/chacaras/{id}/datas-ocupadas', ['ReservaController', 'datasOcupadas']);
 $router->post('/chacaras/{id}/reservar', ['ReservaController', 'store']);
 $router->get('/reservas/{id}/confirmacao', ['ReservaController', 'confirmacao']);
 $router->get('/minhas-reservas',         ['ReservaController', 'historico']);

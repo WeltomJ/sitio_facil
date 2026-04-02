@@ -13,7 +13,7 @@
 
         <div class="card shadow-sm border" style="border-radius:16px;">
             <div class="card-body p-4">
-                <form method="POST" action="<?= BASE_URL ?>/login" novalidate>
+                <form id="form-login" method="POST" action="<?= BASE_URL ?>/login" novalidate>
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold" for="email">E-mail</label>
@@ -53,3 +53,19 @@
         </p>
     </div>
 </div>
+
+<script>
+$(function () {
+    validateForm({
+        formSelector: '#form-login',
+        rules: {
+            email: { required: true, email: true },
+            senha: { required: true, minlength: 6 },
+        },
+        message: {
+            email: { required: 'Informe seu e-mail.', email: 'E-mail inválido.' },
+            senha: { required: 'Informe sua senha.',  minlength: 'A senha deve ter no mínimo 6 caracteres.' },
+        },
+    });
+});
+</script>

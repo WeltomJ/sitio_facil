@@ -50,13 +50,34 @@ class AuthController extends Controller
         $nome       = trim($_POST['nome'] ?? '');
         $email      = trim($_POST['email'] ?? '');
         $senha      = $_POST['senha'] ?? '';
-        $telefone   = trim($_POST['telefone'] ?? '');
+        $telefone   = preg_replace('/\D/', '', $_POST['telefone'] ?? '') ?: null;
         $tipoPessoa = $_POST['tipo_pessoa'] ?? 'PF';
         $cpfCnpj    = preg_replace('/\D/', '', $_POST['cpf_cnpj'] ?? '');
 
         // Perfil pode vir como array (checkboxes) ou string
         $perfisRaw = $_POST['perfil'] ?? ['CLIENTE'];
         $perfil    = is_array($perfisRaw) ? implode(',', $perfisRaw) : $perfisRaw;
+
+        // Validação de campos obrigatórios
+        if ($nome === '') {
+            $this->flashError('O nome é obrigatório.');
+            $this->redirect(BASE_URL . '/cadastro');
+        }
+
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->flashError('Informe um e-mail válido.');
+            $this->redirect(BASE_URL . '/cadastro');
+        }
+
+        if (strlen($senha) < 6) {
+            $this->flashError('A senha deve ter no mínimo 6 caracteres.');
+            $this->redirect(BASE_URL . '/cadastro');
+        }
+
+        if ($cpfCnpj === '') {
+            $this->flashError('O CPF/CNPJ é obrigatório.');
+            $this->redirect(BASE_URL . '/cadastro');
+        }
 
         $model = new Usuario();
 

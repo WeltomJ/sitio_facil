@@ -1,5 +1,6 @@
 # ─── Dependências Node ──────────────────────────────────────────
 node_modules/
+package-lock.json
 
 # ─── Vendor (copiados via npm run setup) ────────────────────────
 public/vendor/

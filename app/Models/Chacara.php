@@ -108,6 +108,46 @@ class Chacara extends Model
         return $stmt->fetchAll();
     }
 
+    public function insertFoto(int $chacaraId, string $url, int $ordem = 99): int
+    {
+        $this->db->prepare(
+            "INSERT INTO chacara_fotos (chacara_id, url, ordem) VALUES (?, ?, ?)"
+        )->execute([$chacaraId, $url, $ordem]);
+        return (int) $this->db->lastInsertId();
+    }
+
+    /** Deleta foto verificando que pertence à chácara informada. Retorna a URL para exclusão do arquivo. */
+    public function deleteFoto(int $fotoId, int $chacaraId): string|false
+    {
+        $stmt = $this->db->prepare("SELECT url FROM chacara_fotos WHERE id = ? AND chacara_id = ?");
+        $stmt->execute([$fotoId, $chacaraId]);
+        $foto = $stmt->fetch();
+        if (!$foto) return false;
+        $this->db->prepare("DELETE FROM chacara_fotos WHERE id = ?")->execute([$fotoId]);
+        return $foto['url'];
+    }
+
+    /** Define a foto principal (ordem = 0) e reordena as demais. */
+    public function setPrincipal(int $chacaraId, int $fotoId): bool
+    {
+        $fotos = $this->getFotos($chacaraId);
+        $found = false;
+        foreach ($fotos as $f) {
+            if ((int) $f['id'] === $fotoId) { $found = true; break; }
+        }
+        if (!$found) return false;
+
+        $ordem = 1;
+        foreach ($fotos as $f) {
+            if ((int) $f['id'] === $fotoId) {
+                $this->db->prepare("UPDATE chacara_fotos SET ordem = 0 WHERE id = ?")->execute([$f['id']]);
+            } else {
+                $this->db->prepare("UPDATE chacara_fotos SET ordem = ? WHERE id = ?")->execute([$ordem++, $f['id']]);
+            }
+        }
+        return true;
+    }
+
     /** Substitui todas as comodidades da chácara pelos IDs fornecidos */
     public function sincronizarComodidades(int $chacaraId, array $comodidadeIds): void
     {

@@ -1,12 +1,24 @@
 ﻿<?php $pageTitle = htmlspecialchars($chacara['nome']) . ' — Sítio Fácil'; ?>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
+<style>
+.flatpickr-input[readonly] { background: transparent; cursor: pointer; }
+.flatpickr-day.disabled, .flatpickr-day.disabled:hover {
+    color: #dc3545 !important;
+    background: rgba(220,53,69,.08) !important;
+    text-decoration: line-through;
+    opacity: 1;
+}
+</style>
 
 <!-- Galeria de fotos -->
 <?php if (!empty($fotos)): ?>
     <div class="sf-gallery-grid mb-4" id="gallery-grid">
         <?php foreach (array_slice($fotos, 0, 5) as $i => $foto): ?>
             <div class="sf-gallery-cell" data-idx="<?= $i ?>">
-                <img src="<?= htmlspecialchars($foto['url']) ?>"
-                     alt="<?= htmlspecialchars($foto['descricao'] ?? $chacara['nome']) ?>">
+                <img src="<?= BASE_URL . htmlspecialchars($foto['url']) ?>"
+                     alt="<?= htmlspecialchars($foto['descricao'] ?? $chacara['nome']) ?>"
+                     data-full="<?= BASE_URL . htmlspecialchars($foto['url']) ?>"
+                     data-caption="<?= htmlspecialchars($foto['descricao'] ?? $chacara['nome']) ?>">
             </div>
         <?php endforeach; ?>
     </div>
@@ -150,17 +162,17 @@
                     <div class="sf-date-grid mb-3">
                         <div class="sf-date-cell" style="border-right:1px solid var(--sf-border);">
                             <div class="sf-date-cell-label">CHECK-IN</div>
-                            <input type="date" id="data_inicio" name="data_inicio"
-                                   min="<?= date('Y-m-d') ?>" required
+                            <input type="text" id="data_inicio" name="data_inicio"
+                                   placeholder="dd/mm/aaaa"
                                    class="border-0 bg-transparent fw-semibold small w-100"
-                                   style="outline:none; cursor:pointer;">
+                                   style="outline:none; cursor:pointer;" autocomplete="off">
                         </div>
                         <div class="sf-date-cell">
                             <div class="sf-date-cell-label">CHECK-OUT</div>
-                            <input type="date" id="data_fim" name="data_fim"
-                                   min="<?= date('Y-m-d') ?>" required
+                            <input type="text" id="data_fim" name="data_fim"
+                                   placeholder="dd/mm/aaaa"
                                    class="border-0 bg-transparent fw-semibold small w-100"
-                                   style="outline:none; cursor:pointer;">
+                                   style="outline:none; cursor:pointer;" autocomplete="off">
                         </div>
                     </div>
 
@@ -193,26 +205,99 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/pt.js"></script>
 <script>
 (function () {
-    const inicio  = document.getElementById('data_inicio');
-    const fim     = document.getElementById('data_fim');
-    const preview = document.getElementById('total-preview');
-    const preco   = <?= (float) $chacara['preco_diaria'] ?>;
+    var preco   = <?= (float) $chacara['preco_diaria'] ?>;
+    var preview = document.getElementById('total-preview');
+    var $form   = document.querySelector('.sf-booking-box form');
 
-    function atualizar() {
-        if (!inicio?.value || !fim?.value || !preview) return;
-        const d1   = new Date(inicio.value);
-        const d2   = new Date(fim.value);
-        const dias = Math.max(0, Math.round((d2 - d1) / 86400000)) + 1;
-        if (dias > 0 && d2 >= d1) {
+    function atualizar(inicio, fim) {
+        if (!inicio || !fim || !preview) return;
+        var d1   = new Date(inicio);
+        var d2   = new Date(fim);
+        var dias = Math.max(1, Math.round((d2 - d1) / 86400000) + 1);
+        if (d2 >= d1) {
             preview.textContent = dias + ' diária(s) × R$ ' +
                 preco.toFixed(2).replace('.', ',') + ' = R$ ' +
                 (dias * preco).toFixed(2).replace('.', ',');
         }
     }
 
-    inicio?.addEventListener('change', atualizar);
-    fim?.addEventListener('change', atualizar);
+    var ocupados = []; // guardará os ranges após o fetch
+
+    var fpFim;
+
+    var fpInicio = flatpickr('#data_inicio', {
+        locale: 'pt',
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'd/m/Y',
+        minDate: 'today',
+        disableMobile: true,
+        onChange: function (sel, dateStr) {
+            if (!sel[0]) return;
+            var nextDay = new Date(sel[0]);
+            nextDay.setDate(nextDay.getDate() + 1);
+            fpFim.set('minDate', nextDay);
+            if (fpFim.selectedDates[0] && fpFim.selectedDates[0] <= sel[0]) {
+                fpFim.clear();
+            }
+            atualizar(dateStr, fpFim.input.value);
+        }
+    });
+
+    fpFim = flatpickr('#data_fim', {
+        locale: 'pt',
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'd/m/Y',
+        minDate: 'today',
+        disableMobile: true,
+        onChange: function (sel, dateStr) {
+            if (!sel[0] || !fpInicio.selectedDates[0]) return;
+
+            var inicio = fpInicio.selectedDates[0];
+            var fim    = sel[0];
+
+            // Verifica se algum range ocupado intercepta o intervalo selecionado
+            var conflito = ocupados.some(function (r) {
+                var rDe  = new Date(r.from);
+                var rAte = new Date(r.to);
+                // há sobreposição se: início do range < fim selecionado E fim do range > início selecionado
+                return rDe <= fim && rAte >= inicio;
+            });
+
+            if (conflito) {
+                fpFim.clear();
+                if (preview) preview.textContent = '';
+                notification({ type: 'error', message: 'O período selecionado inclui datas já reservadas. Escolha outro intervalo.' });
+                return;
+            }
+
+            atualizar(fpInicio.input.value, dateStr);
+        }
+    });
+
+    // Carrega datas ocupadas e aplica nos dois calendários
+    fetch(BASE_URL + '/chacaras/<?= (int) $chacara['id'] ?>/datas-ocupadas')
+        .then(function (r) { return r.json(); })
+        .then(function (ranges) {
+            if (!ranges.length) return;
+            ocupados = ranges;
+            fpInicio.set('disable', ranges);
+            fpFim.set('disable', ranges);
+        });
+
+    // Valida antes de submeter
+    if ($form) {
+        $form.addEventListener('submit', function (e) {
+            if (!fpInicio.input.value || !fpFim.input.value) {
+                e.preventDefault();
+                notification({ type: 'warning', message: 'Selecione as datas de check-in e check-out.' });
+            }
+        });
+    }
 })();
 </script>
