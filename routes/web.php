@@ -12,6 +12,7 @@ $router->get('/logout',    ['AuthController', 'logout']);
 $router->get('/',          ['ChacaraController', 'index']);
 $router->get('/chacaras',  ['ChacaraController', 'index']);
 $router->get('/chacaras/{id}', ['ChacaraController', 'show']);
+$router->get('/chacaras/{id}/disponibilidade', ['ChacaraController', 'verificarDisponibilidadeAjax']);
 
 // ── Dashboard ────────────────────────────────────────────────────────────────
 $router->get('/dashboard', ['DashboardController', 'index']);
