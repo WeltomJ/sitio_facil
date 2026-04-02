@@ -12,21 +12,106 @@ class ChacaraController extends Controller
 {
     public function index(): void
     {
+        $model = new Chacara();
+
+        // Coleta todos os filtros da requisição
         $filtros = [
-            'cidade'      => trim($_GET['cidade'] ?? ''),
-            'capacidade'  => (int) ($_GET['capacidade'] ?? 0),
-            'data_inicio' => $_GET['data_inicio'] ?? '',
-            'data_fim'    => $_GET['data_fim'] ?? '',
+            'cidade'         => trim($_GET['cidade'] ?? ''),
+            'estado'         => trim($_GET['estado'] ?? ''),
+            'capacidade'     => (int) ($_GET['capacidade'] ?? 0),
+            'capacidade_max' => (int) ($_GET['capacidade_max'] ?? 0),
+            'preco_min'      => (float) ($_GET['preco_min'] ?? 0),
+            'preco_max'      => (float) ($_GET['preco_max'] ?? 0),
+            'data_inicio'    => $_GET['data_inicio'] ?? '',
+            'data_fim'       => $_GET['data_fim'] ?? '',
+            'tipo_cobranca'  => $_GET['tipo_cobranca'] ?? '',
+            'comodidades'    => $_GET['comodidades'] ?? [],
+            'ordenar'        => $_GET['ordenar'] ?? 'relevancia',
         ];
 
-        $model    = new Chacara();
-        $chacaras = $model->buscar(array_filter($filtros));
+        // Validação de datas
+        $erros = [];
+        if (!empty($filtros['data_inicio']) && !empty($filtros['data_fim'])) {
+            if ($filtros['data_fim'] < $filtros['data_inicio']) {
+                $erros[] = 'A data de término deve ser posterior à data de início';
+            }
+        }
+
+        // Busca com filtros aplicados
+        $chacaras = empty($erros) ? $model->buscar(array_filter($filtros)) : [];
+
+        // Carrega comodidades para os filtros
+        $comodidades = $model->getTodasComodidades();
+
+        // Verifica disponibilidade para cada chácara se datas foram informadas
+        if (!empty($filtros['data_inicio']) && !empty($filtros['data_fim']) && empty($erros)) {
+            foreach ($chacaras as &$chacara) {
+                $disp = $model->verificarDisponibilidade(
+                    (int) $chacara['id'],
+                    $filtros['data_inicio'],
+                    $filtros['data_fim']
+                );
+                $chacara['disponibilidade'] = $disp;
+            }
+        }
+
+        // Dados para UI de filtros
+        $faixaPrecos = $this->getFaixaPrecos();
+        $opcoesOrdenacao = [
+            'relevancia'   => 'Relevância',
+            'preco_asc'    => 'Menor preço',
+            'preco_desc'   => 'Maior preço',
+            'nota'         => 'Melhor avaliação',
+            'capacidade'   => 'Maior capacidade',
+            'novos'        => 'Mais recentes',
+        ];
 
         $this->view('chacaras.index', [
-            'pageTitle' => 'Buscar Chácaras — Sítio Fácil',
-            'chacaras'  => $chacaras,
-            'filtros'   => $filtros,
+            'pageTitle'       => 'Buscar Chácaras — Sítio Fácil',
+            'chacaras'        => $chacaras,
+            'filtros'         => $filtros,
+            'erros'           => $erros,
+            'comodidades'     => $comodidades,
+            'faixaPrecos'     => $faixaPrecos,
+            'opcoesOrdenacao' => $opcoesOrdenacao,
         ]);
+    }
+
+    /**
+     * Endpoint AJAX para verificar disponibilidade em tempo real
+     */
+    public function verificarDisponibilidadeAjax(string $id): void
+    {
+        $dataInicio = $_GET['data_inicio'] ?? '';
+        $dataFim = $_GET['data_fim'] ?? '';
+
+        if (empty($dataInicio) || empty($dataFim)) {
+            http_response_code(400);
+            echo json_encode(['erro' => 'Datas não informadas']);
+            return;
+        }
+
+        $model = new Chacara();
+        $resultado = $model->verificarDisponibilidade((int) $id, $dataInicio, $dataFim);
+
+        header('Content-Type: application/json');
+        echo json_encode($resultado);
+    }
+
+    /**
+     * Retorna a faixa de preços para filtros
+     */
+    private function getFaixaPrecos(): array
+    {
+        $stmt = $this->db->query("
+            SELECT MIN(preco_diaria) as minimo, MAX(preco_diaria) as maximo
+            FROM chacaras WHERE ativa = 1
+        ");
+        $result = $stmt->fetch();
+        return [
+            'min' => (float) ($result['minimo'] ?? 0),
+            'max' => (float) ($result['maximo'] ?? 1000),
+        ];
     }
 
     public function show(string $id): void

@@ -12,6 +12,7 @@ $router->get('/logout',    ['AuthController', 'logout']);
 $router->get('/',          ['ChacaraController', 'index']);
 $router->get('/chacaras',  ['ChacaraController', 'index']);
 $router->get('/chacaras/{id}', ['ChacaraController', 'show']);
+$router->get('/chacaras/{id}/disponibilidade', ['ChacaraController', 'verificarDisponibilidadeAjax']);
 
 // ── Dashboard ────────────────────────────────────────────────────────────────
 $router->get('/dashboard', ['DashboardController', 'index']);
@@ -24,6 +25,7 @@ $router->get('/locador/chacaras/{id}/editar',  ['ChacaraController', 'edit']);
 $router->post('/locador/chacaras/{id}',        ['ChacaraController', 'update']);
 
 $router->get('/locador/reservas',                      ['ReservaController', 'indexLocador']);
+$router->get('/locador/reservas/historico',           ['ReservaController', 'historicoLocador']);
 $router->post('/locador/reservas/{id}/confirmar',      ['ReservaController', 'confirmar']);
 $router->post('/locador/reservas/{id}/recusar',        ['ReservaController', 'recusar']);
 
