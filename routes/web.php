@@ -38,3 +38,12 @@ $router->post('/reservas/{id}/avaliar',  ['AvaliacaoController', 'store']);
 // ── Notificações ─────────────────────────────────────────────────────────────
 $router->get('/notificacoes',              ['NotificacaoController', 'index']);
 $router->post('/notificacoes/{id}/ler',   ['NotificacaoController', 'marcarLida']);
+
+// ── Localização / APIs Geográficas ───────────────────────────────────────────
+$router->get('/localizacao', ['LocalizacaoController', 'index']);
+$router->get('/localizacao/info', ['LocalizacaoController', 'infoCidade']);
+$router->get('/localizacao/clima', ['LocalizacaoController', 'clima']);
+$router->get('/localizacao/pontos', ['LocalizacaoController', 'pontosInteresse']);
+$router->get('/localizacao/pontos/{categoria}', ['LocalizacaoController', 'pontosInteresse']);
+$router->get('/localizacao/geocodificar/{endereco}', ['LocalizacaoController', 'geocodificar']);
+$router->post('/localizacao/distancia', ['LocalizacaoController', 'calcularDistancia']);
