@@ -24,7 +24,7 @@ class Reserva extends Model
         return $stmt->fetch();
     }
 
-    public function findByCliente(int $clienteId): array
+    public function findByCliente(int $clienteId, int $page = 1, int $perPage = 15): array
     {
         $stmt = $this->db->prepare("
             SELECT r.*, c.nome AS chacara_nome, e.cidade, e.estado
@@ -33,12 +33,20 @@ class Reserva extends Model
             LEFT JOIN chacara_enderecos e ON e.chacara_id = c.id
             WHERE r.cliente_id = ?
             ORDER BY r.criado_em DESC
+            LIMIT ? OFFSET ?
         ");
-        $stmt->execute([$clienteId]);
+        $stmt->execute([$clienteId, $perPage, ($page - 1) * $perPage]);
         return $stmt->fetchAll();
     }
 
-    public function findByLocador(int $locadorId): array
+    public function countByCliente(int $clienteId): int
+    {
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM reservas WHERE cliente_id = ?");
+        $stmt->execute([$clienteId]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function findByLocador(int $locadorId, int $page = 1, int $perPage = 15): array
     {
         $stmt = $this->db->prepare("
             SELECT r.*, c.nome AS chacara_nome,
@@ -48,9 +56,21 @@ class Reserva extends Model
             INNER JOIN usuarios u ON u.id = r.cliente_id
             WHERE c.locador_id = ?
             ORDER BY r.criado_em DESC
+            LIMIT ? OFFSET ?
+        ");
+        $stmt->execute([$locadorId, $perPage, ($page - 1) * $perPage]);
+        return $stmt->fetchAll();
+    }
+
+    public function countByLocador(int $locadorId): int
+    {
+        $stmt = $this->db->prepare("
+            SELECT COUNT(*) FROM reservas r
+            INNER JOIN chacaras c ON c.id = r.chacara_id
+            WHERE c.locador_id = ?
         ");
         $stmt->execute([$locadorId]);
-        return $stmt->fetchAll();
+        return (int) $stmt->fetchColumn();
     }
 
     /**

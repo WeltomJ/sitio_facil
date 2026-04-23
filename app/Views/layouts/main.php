@@ -97,9 +97,37 @@
                             <a class="nav-link dropdown-toggle sf-user-pill" href="#"
                                 role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-bars me-1" style="font-size:.85rem;"></i>
-                                <span class="sf-avatar"><i class="fas fa-user" style="font-size:.75rem;"></i></span>
+                                <?php if (!empty($_SESSION['foto_url'])): ?>
+                                    <img src="<?= BASE_URL . htmlspecialchars($_SESSION['foto_url']) ?>"
+                                         alt="<?= htmlspecialchars($_SESSION['nome'] ?? '') ?>"
+                                         class="sf-avatar sf-avatar--photo">
+                                <?php else: ?>
+                                    <span class="sf-avatar sf-avatar--initial">
+                                        <?= strtoupper(mb_substr($_SESSION['nome'] ?? 'U', 0, 1)) ?>
+                                    </span>
+                                <?php endif; ?>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow">
+                                <!-- Cabeçalho com nome do usuário -->
+                                <li class="px-3 py-2 d-flex align-items-center gap-2">
+                                    <?php if (!empty($_SESSION['foto_url'])): ?>
+                                        <img src="<?= BASE_URL . htmlspecialchars($_SESSION['foto_url']) ?>"
+                                             alt="" class="sf-avatar sf-avatar--photo" style="width:36px;height:36px;">
+                                    <?php else: ?>
+                                        <span class="sf-avatar sf-avatar--initial" style="width:36px;height:36px;font-size:.9rem;">
+                                            <?= strtoupper(mb_substr($_SESSION['nome'] ?? 'U', 0, 1)) ?>
+                                        </span>
+                                    <?php endif; ?>
+                                    <div>
+                                        <p class="fw-semibold mb-0 small"><?= htmlspecialchars($_SESSION['nome'] ?? '') ?></p>
+                                    </div>
+                                </li>
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <li>
+                                    <a class="dropdown-item" href="<?= BASE_URL ?>/perfil">
+                                        <i class="fas fa-user-circle me-2 text-muted"></i> Meu Perfil
+                                    </a>
+                                </li>
                                 <li>
                                     <a class="dropdown-item" href="<?= BASE_URL ?>/dashboard">
                                         <i class="fas fa-tachometer-alt me-2 text-muted"></i> Dashboard
@@ -110,6 +138,13 @@
                                         <i class="fas fa-calendar-check me-2 text-muted"></i> Minhas Reservas
                                     </a>
                                 </li>
+                                <?php if (str_contains($_SESSION['perfil'] ?? '', 'CLIENTE')): ?>
+                                    <li>
+                                        <a class="dropdown-item" href="<?= BASE_URL ?>/cliente/cartoes">
+                                            <i class="fas fa-credit-card me-2 text-muted"></i> Meus Cartões
+                                        </a>
+                                    </li>
+                                <?php endif; ?>
                                 <?php if (str_contains($_SESSION['perfil'] ?? '', 'LOCADOR')): ?>
                                     <li>
                                         <hr class="dropdown-divider">
@@ -130,6 +165,11 @@
                                     <li>
                                         <a class="dropdown-item" href="<?= BASE_URL ?>/locador/chacaras/nova">
                                             <i class="fas fa-plus me-2 text-muted"></i> Cadastrar Chácara
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="<?= BASE_URL ?>/locador/perfil">
+                                            <i class="fas fa-university me-2 text-muted"></i> Dados de Recebimento
                                         </a>
                                     </li>
                                 <?php endif; ?>
@@ -204,6 +244,15 @@
                     <a href="<?= BASE_URL ?>/cadastro">Criar Conta</a>
                     <a href="<?= BASE_URL ?>/notificacoes">Notificações</a>
                 </div>
+                <div class="sf-footer-col">
+                    <div class="sf-footer-col-title">Legal</div>
+                    <a href="<?= BASE_URL ?>/termos">Termos de Uso</a>
+                    <a href="<?= BASE_URL ?>/privacidade">Política de Privacidade</a>
+                    <a href="<?= BASE_URL ?>/cancelamento">Política de Cancelamento</a>
+                    <a href="https://www.consumidor.gov.br" target="_blank" rel="noopener">
+                        consumidor.gov.br <i class="fas fa-external-link-alt ms-1" style="font-size:.6rem;"></i>
+                    </a>
+                </div>
             </div>
             <div class="sf-footer-bottom">
                 <span class="sf-footer-brand">
@@ -211,7 +260,9 @@
                     Sítio Fácil
                 </span>
                 <span class="sf-footer-copy">
-                    &copy; <?= date('Y') ?> Sítio Fácil &mdash; Marketplace de aluguel de chácaras
+                    &copy; <?= date('Y') ?> Sítio Fácil &mdash; Marketplace de aluguel de chácaras &mdash;
+                    <a href="<?= BASE_URL ?>/privacidade" style="color:inherit;opacity:.7;">Privacidade</a> &middot;
+                    <a href="<?= BASE_URL ?>/termos" style="color:inherit;opacity:.7;">Termos</a>
                 </span>
             </div>
         </div>

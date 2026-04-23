@@ -23,24 +23,23 @@ $precoFloat  = (float) ($chacara['preco_diaria'] ?? 0);
 <form id="form-chacara" method="POST" action="<?= $acao ?>" enctype="multipart/form-data">
 
     <!-- INFORMAÇÕES GERAIS -->
-    <div class="card mb-4">
-        <div class="card-body p-4">
-            <h2 class="h5 fw-bold mb-4">Informações Gerais</h2>
+    <div class="sf-section-block mb-4 p-4">
+        <h2 class="h5 fw-bold mb-4">Informações Gerais</h2>
 
-            <div class="mb-3">
-                <label class="form-label fw-semibold" for="nome">Nome da chácara *</label>
-                <input class="form-control" type="text" id="nome" name="nome"
-                       value="<?= htmlspecialchars($chacara['nome'] ?? '') ?>"
-                       placeholder="Ex.: Chácara Boa Vista">
-            </div>
+        <div class="mb-3">
+            <label class="form-label fw-semibold" for="nome">Nome da chácara *</label>
+            <input class="form-control" type="text" id="nome" name="nome"
+                   value="<?= htmlspecialchars($chacara['nome'] ?? '') ?>"
+                   placeholder="Ex.: Chácara Boa Vista">
+        </div>
 
-            <div class="mb-3">
-                <label class="form-label fw-semibold" for="descricao">Descrição</label>
-                <textarea class="form-control" id="descricao" name="descricao" rows="4"
-                          placeholder="Descreva o local, atrações, regras..."><?= htmlspecialchars($chacara['descricao'] ?? '') ?></textarea>
-            </div>
+        <div class="mb-3">
+            <label class="form-label fw-semibold" for="descricao">Descrição</label>
+            <textarea class="form-control" id="descricao" name="descricao" rows="4"
+                      placeholder="Descreva o local, atrações, regras..."><?= htmlspecialchars($chacara['descricao'] ?? '') ?></textarea>
+        </div>
 
-            <div class="row g-3">
+        <div class="row g-3">
                 <div class="col-md-3">
                     <label class="form-label fw-semibold" for="capacidade_maxima">Capacidade máxima *</label>
                     <input class="form-control" type="number" id="capacidade_maxima"
@@ -67,13 +66,11 @@ $precoFloat  = (float) ($chacara['preco_diaria'] ?? 0);
                            value="<?= htmlspecialchars(substr($chacara['horario_checkout'] ?? '10:00:00', 0, 5)) ?>">
                 </div>
             </div>
-        </div>
     </div>
 
     <!-- ENDEREÇO -->
-    <div class="card mb-4">
-        <div class="card-body p-4">
-            <h2 class="h5 fw-bold mb-4">Endereço</h2>
+    <div class="sf-section-block mb-4 p-4">
+        <h2 class="h5 fw-bold mb-4">Endereço</h2>
 
             <div class="row g-3 mb-3">
                 <div class="col-md-3">
@@ -150,14 +147,12 @@ $precoFloat  = (float) ($chacara['preco_diaria'] ?? 0);
                     </p>
                 </div>
             </div>
-        </div>
     </div>
 
     <!-- COMODIDADES -->
     <?php if (!empty($comodidades)): ?>
-        <div class="card mb-4">
-            <div class="card-body p-4">
-                <h2 class="h5 fw-bold mb-4">Comodidades</h2>
+        <div class="sf-section-block mb-4 p-4">
+            <h2 class="h5 fw-bold mb-4">Comodidades</h2>
                 <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-2">
                     <?php foreach ($comodidades as $como): ?>
                         <div class="col">
@@ -173,14 +168,12 @@ $precoFloat  = (float) ($chacara['preco_diaria'] ?? 0);
                         </div>
                     <?php endforeach; ?>
                 </div>
-            </div>
         </div>
     <?php endif; ?>
 
     <!-- FOTOS -->
-    <div class="card mb-4">
-        <div class="card-body p-4">
-            <h2 class="h5 fw-bold mb-4">Fotos</h2>
+    <div class="sf-section-block mb-4 p-4">
+        <h2 class="h5 fw-bold mb-4">Fotos</h2>
 
             <?php if ($editando && !empty($fotosExist)): ?>
             <!-- Fotos existentes -->
@@ -232,7 +225,6 @@ $precoFloat  = (float) ($chacara['preco_diaria'] ?? 0);
             </div>
 
             <div class="sf-dropzone__previews mt-3" id="new-previews" style="display:none;"></div>
-        </div>
     </div>
 
     <div class="d-flex gap-3 mt-2 mb-5">
@@ -454,13 +446,24 @@ $(function () {
             estado:            { required: 'Informe o estado', minlength: 'Use a sigla com 2 letras', maxlength: 'Use a sigla com 2 letras' },
         },
         submitHandler: function (formEl) {
-            if (newFiles.length > 0 && typeof DataTransfer !== 'undefined') {
+            var $btn = $(formEl).find('[type=submit]');
+            $btn.prop('disabled', true).html(
+                '<i class="fas fa-spinner fa-spin me-2"></i>' +
+                ($btn.text().trim().startsWith('Salvar') ? 'Salvando...' : 'Cadastrando...')
+            );
+
+            if (newFiles.length > 0) {
                 try {
-                    var dt = new DataTransfer();
-                    newFiles.forEach(function (f) { dt.items.add(f); });
-                    document.getElementById('fotos-input').files = dt.files;
-                } catch (e) { /* fallback: input nativo */ }
+                    if (typeof DataTransfer !== 'undefined') {
+                        var dt = new DataTransfer();
+                        newFiles.forEach(function (f) { dt.items.add(f); });
+                        document.getElementById('fotos-input').files = dt.files;
+                    }
+                } catch (e) {
+                    // DataTransfer não suportado — o input nativo já tem os arquivos
+                }
             }
+
             formEl.submit();
         }
     });

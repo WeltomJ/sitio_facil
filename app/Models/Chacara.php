@@ -13,7 +13,41 @@ class Chacara extends Model
      * Busca chácaras disponíveis aplicando filtros de cidade, capacidade e datas.
      * Só exclui períodos bloqueados por reservas CONFIRMADAS (Regra 9 + 12).
      */
-    public function buscar(array $filtros): array
+    public function buscar(array $filtros, int $page = 1, int $perPage = 12): array
+    {
+        [$sql, $params] = $this->buildBuscarQuery($filtros);
+        $sql .= ' ORDER BY ' . $this->resolverOrdenacao($filtros['ordenar'] ?? '');
+        $sql .= " LIMIT ? OFFSET ?";
+        $params[] = $perPage;
+        $params[] = ($page - 1) * $perPage;
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
+    /** Retorna o total de registros para a busca (sem LIMIT). */
+    public function buscarTotal(array $filtros): int
+    {
+        [$sql, $params] = $this->buildBuscarQuery($filtros);
+        $countSql = "SELECT COUNT(*) FROM ({$sql}) AS _sub";
+        $stmt     = $this->db->prepare($countSql);
+        $stmt->execute($params);
+        return (int) $stmt->fetchColumn();
+    }
+
+    private function resolverOrdenacao(string $ordenar): string
+    {
+        return match ($ordenar) {
+            'preco_asc'  => 'c.preco_diaria ASC, c.criado_em DESC',
+            'preco_desc' => 'c.preco_diaria DESC, c.criado_em DESC',
+            'recente'    => 'c.criado_em DESC',
+            'nota'       => 'nota_media DESC, c.criado_em DESC',
+            default      => 'nota_media DESC, c.criado_em DESC',
+        };
+    }
+
+    private function buildBuscarQuery(array $filtros): array
     {
         $sql = "
             SELECT c.*,
@@ -31,9 +65,46 @@ class Chacara extends Model
             $params[] = '%' . $filtros['cidade'] . '%';
         }
 
+        if (!empty($filtros['estado'])) {
+            $sql     .= " AND e.estado = ?";
+            $params[] = strtoupper(trim($filtros['estado']));
+        }
+
         if (!empty($filtros['capacidade'])) {
             $sql     .= " AND c.capacidade_maxima >= ?";
             $params[] = (int) $filtros['capacidade'];
+        }
+
+        if (!empty($filtros['preco_min'])) {
+            $sql     .= " AND c.preco_diaria >= ?";
+            $params[] = (float) $filtros['preco_min'];
+        }
+
+        if (!empty($filtros['preco_max'])) {
+            $sql     .= " AND c.preco_diaria <= ?";
+            $params[] = (float) $filtros['preco_max'];
+        }
+
+        if (!empty($filtros['nota_min'])) {
+            $sql     .= " AND (SELECT ROUND(AVG(nota), 1) FROM avaliacoes WHERE chacara_id = c.id) >= ?";
+            $params[] = (float) $filtros['nota_min'];
+        }
+
+        // Comodidades: todas as selecionadas devem estar presentes
+        $comodidades = array_filter(array_map('intval', (array) ($filtros['comodidades'] ?? [])));
+        if (!empty($comodidades)) {
+            $placeholders = implode(',', array_fill(0, count($comodidades), '?'));
+            $sql .= "
+                AND (
+                    SELECT COUNT(DISTINCT comodidade_id)
+                    FROM chacara_comodidades
+                    WHERE chacara_id = c.id AND comodidade_id IN ({$placeholders})
+                ) = ?
+            ";
+            foreach ($comodidades as $cId) {
+                $params[] = $cId;
+            }
+            $params[] = count($comodidades);
         }
 
         // Exclui apenas reservas CONFIRMADAS que conflitam com o período (Regra 9)
@@ -49,11 +120,7 @@ class Chacara extends Model
             $params[] = $filtros['data_inicio'];
         }
 
-        $sql .= " ORDER BY nota_media DESC, c.criado_em DESC";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->fetchAll();
+        return [$sql, $params];
     }
 
     /** Retorna chácara com endereço e dados do locador joinados */
@@ -63,7 +130,8 @@ class Chacara extends Model
             SELECT c.*,
                    e.logradouro, e.numero, e.complemento, e.bairro,
                    e.cidade, e.estado, e.cep, e.latitude, e.longitude,
-                   u.nome AS locador_nome, u.telefone AS locador_telefone
+                   u.nome AS locador_nome, u.telefone AS locador_telefone,
+                   u.foto_url AS locador_foto
             FROM chacaras c
             LEFT JOIN chacara_enderecos e ON e.chacara_id = c.id
             LEFT JOIN usuarios u ON u.id = c.locador_id
@@ -73,7 +141,7 @@ class Chacara extends Model
         return $stmt->fetch();
     }
 
-    public function findByLocador(int $locadorId): array
+    public function findByLocador(int $locadorId, int $page = 1, int $perPage = 12): array
     {
         $stmt = $this->db->prepare("
             SELECT c.*, e.cidade, e.estado
@@ -81,9 +149,17 @@ class Chacara extends Model
             LEFT JOIN chacara_enderecos e ON e.chacara_id = c.id
             WHERE c.locador_id = ?
             ORDER BY c.criado_em DESC
+            LIMIT ? OFFSET ?
         ");
-        $stmt->execute([$locadorId]);
+        $stmt->execute([$locadorId, $perPage, ($page - 1) * $perPage]);
         return $stmt->fetchAll();
+    }
+
+    public function countByLocador(int $locadorId): int
+    {
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM chacaras WHERE locador_id = ?");
+        $stmt->execute([$locadorId]);
+        return (int) $stmt->fetchColumn();
     }
 
     public function getComodidades(int $chacaraId): array

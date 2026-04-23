@@ -86,7 +86,21 @@
                         <div class="form-text">Você pode ter os dois perfis ao mesmo tempo.</div>
                     </div>
 
-                    <div class="d-grid mt-4">
+                    <!-- Aceite obrigatório -->
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="aceite_termos" name="aceite_termos" value="1" required>
+                            <label class="form-check-label small" for="aceite_termos">
+                                Li e concordo com os
+                                <a href="<?= BASE_URL ?>/termos" target="_blank" rel="noopener">Termos de Uso</a>,
+                                a <a href="<?= BASE_URL ?>/privacidade" target="_blank" rel="noopener">Política de Privacidade</a>
+                                e a <a href="<?= BASE_URL ?>/cancelamento" target="_blank" rel="noopener">Política de Cancelamento</a>
+                                do Sítio Fácil. <span class="text-danger">*</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="d-grid mt-3">
                         <button class="btn btn-primary btn-lg" type="submit">Criar conta</button>
                     </div>
                 </form>
@@ -98,10 +112,6 @@
                 </div>
             </div>
         </div>
-
-        <p class="text-center mt-3 text-muted" style="font-size:.75rem;">
-            Ao criar uma conta, você concorda com nossos termos de uso e política de privacidade.
-        </p>
     </div>
 </div>
 
@@ -140,6 +150,9 @@
                 tipo_pessoa: {
                     required: true
                 },
+                aceite_termos: {
+                    required: true
+                },
             },
             message: {
                 nome: {
@@ -160,6 +173,9 @@
                         const tipo = $("#tipo_pessoa").val();
                         return tipo === 'PF' ? 'CPF inválido.' : 'CNPJ inválido.';
                     }
+                },
+                aceite_termos: {
+                    required: 'Você deve aceitar os termos para criar uma conta.'
                 },
             },
         });

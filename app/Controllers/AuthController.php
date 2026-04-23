@@ -30,9 +30,10 @@ class AuthController extends Controller
         }
 
         session_regenerate_id(true);
-        $_SESSION['usuario_id'] = $usuario['id'];
-        $_SESSION['nome']       = $usuario['nome'];
-        $_SESSION['perfil']     = $usuario['perfil'];
+        $_SESSION['usuario_id']  = $usuario['id'];
+        $_SESSION['nome']        = $usuario['nome'];
+        $_SESSION['perfil']      = $usuario['perfil'];
+        $_SESSION['foto_url'] = $usuario['foto_url'] ?? null;
 
         $this->redirect(BASE_URL . '/dashboard');
     }
@@ -57,6 +58,12 @@ class AuthController extends Controller
         // Perfil pode vir como array (checkboxes) ou string
         $perfisRaw = $_POST['perfil'] ?? ['CLIENTE'];
         $perfil    = is_array($perfisRaw) ? implode(',', $perfisRaw) : $perfisRaw;
+
+        // Aceite dos Termos de Uso (obrigatório por lei — LGPD + CDC)
+        if (empty($_POST['aceite_termos'])) {
+            $this->flashError('É necessário aceitar os Termos de Uso e a Política de Privacidade para criar uma conta.');
+            $this->redirect(BASE_URL . '/cadastro');
+        }
 
         // Validação de campos obrigatórios
         if ($nome === '') {
@@ -102,10 +109,11 @@ class AuthController extends Controller
         ]);
 
         session_regenerate_id(true);
-        $usuario                = $model->find($id);
-        $_SESSION['usuario_id'] = $usuario['id'];
-        $_SESSION['nome']       = $usuario['nome'];
-        $_SESSION['perfil']     = $usuario['perfil'];
+        $usuario                 = $model->find($id);
+        $_SESSION['usuario_id']  = $usuario['id'];
+        $_SESSION['nome']        = $usuario['nome'];
+        $_SESSION['perfil']      = $usuario['perfil'];
+        $_SESSION['foto_url'] = $usuario['foto_url'] ?? null;
 
         $this->flashSuccess('Bem-vindo ao Sítio Fácil, ' . $usuario['nome'] . '!');
         $this->redirect(BASE_URL . '/dashboard');

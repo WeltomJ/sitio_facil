@@ -29,15 +29,39 @@ $router->get('/locador/reservas',                      ['ReservaController', 'in
 $router->post('/locador/reservas/{id}/confirmar',      ['ReservaController', 'confirmar']);
 $router->post('/locador/reservas/{id}/recusar',        ['ReservaController', 'recusar']);
 
+// Perfil do locador — dados bancários
+$router->get('/locador/perfil',  ['PerfilController', 'locador']);
+$router->post('/locador/perfil', ['PerfilController', 'salvarLocador']);
+
 // ── Área do Cliente ──────────────────────────────────────────────────────────
-$router->get('/chacaras/{id}/checkout',  ['ReservaController', 'checkoutForm']);
-$router->get('/chacaras/{id}/datas-ocupadas', ['ReservaController', 'datasOcupadas']);
-$router->post('/chacaras/{id}/reservar', ['ReservaController', 'store']);
-$router->get('/reservas/{id}/confirmacao', ['ReservaController', 'confirmacao']);
-$router->get('/minhas-reservas',         ['ReservaController', 'historico']);
-$router->post('/reservas/{id}/cancelar', ['ReservaController', 'cancelar']);
-$router->post('/reservas/{id}/avaliar',  ['AvaliacaoController', 'store']);
+$router->get('/chacaras/{id}/checkout',        ['ReservaController', 'checkoutForm']);
+$router->get('/chacaras/{id}/datas-ocupadas',  ['ReservaController', 'datasOcupadas']);
+$router->post('/chacaras/{id}/reservar',       ['ReservaController', 'store']);
+$router->get('/reservas/{id}/confirmacao',     ['ReservaController', 'confirmacao']);
+$router->get('/reservas/{id}/status-pagamento',['ReservaController', 'statusPagamento']);
+$router->get('/minhas-reservas',               ['ReservaController', 'historico']);
+$router->post('/reservas/{id}/cancelar',       ['ReservaController', 'cancelar']);
+$router->post('/reservas/{id}/avaliar',        ['AvaliacaoController', 'store']);
+
+// Perfil do usuário (qualquer perfil)
+$router->get('/perfil',         ['PerfilController', 'usuario']);
+$router->post('/perfil',        ['PerfilController', 'salvarPerfil']);
+$router->post('/perfil/foto',   ['PerfilController', 'uploadFoto']);
+$router->post('/perfil/foto/remover', ['PerfilController', 'removerFoto']);
+
+// Cartões salvos do cliente
+$router->get('/cliente/cartoes',                     ['PerfilController', 'cartoes']);
+$router->post('/cliente/cartoes',                    ['PerfilController', 'adicionarCartao']);
+$router->post('/cliente/cartoes/{id}/remover',       ['PerfilController', 'removerCartao']);
 
 // ── Notificações ─────────────────────────────────────────────────────────────
-$router->get('/notificacoes',              ['NotificacaoController', 'index']);
+$router->get('/notificacoes',             ['NotificacaoController', 'index']);
 $router->post('/notificacoes/{id}/ler',   ['NotificacaoController', 'marcarLida']);
+
+// ── Webhook Asaas ────────────────────────────────────────────────────────────
+$router->post('/webhook/asaas', ['WebhookController', 'handle']);
+
+// ── Páginas Legais (públicas) ─────────────────────────────────────────────────
+$router->get('/termos',       ['LegalController', 'termos']);
+$router->get('/privacidade',  ['LegalController', 'privacidade']);
+$router->get('/cancelamento', ['LegalController', 'cancelamento']);

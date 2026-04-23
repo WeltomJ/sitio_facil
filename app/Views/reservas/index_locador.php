@@ -78,6 +78,23 @@ $statusConfig = [
         </table>
     </div>
 
+    <div id="sf-pagination"></div>
+    <script>
+    (function () {
+        var el = document.getElementById('sf-pagination');
+        if (el) el.innerHTML = pagination(<?= (int) ($currentPage ?? 1) ?>, <?= (int) ($totalPages ?? 1) ?>);
+        document.addEventListener('click', function (e) {
+            var link = e.target.closest('#sf-pagination [data-page]');
+            if (!link) return;
+            var p = parseInt(link.dataset.page);
+            if (!p || p < 1) return;
+            var url = new URL(window.location.href);
+            url.searchParams.set('page', p);
+            window.location.href = url.toString();
+        });
+    })();
+    </script>
+
     <!-- Modal de recusa com motivo -->
     <div id="modal-recusa" class="modal fade" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">

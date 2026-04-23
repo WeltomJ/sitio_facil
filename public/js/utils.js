@@ -152,92 +152,47 @@ function showLoader() {
 //--------------------------------------------------------------
 
 /**
- * Gera o HTML da paginação
- * @param {number} current Página atual
- * @param {number} total Total de páginas
- * @returns {string} HTML da paginação
+ * Gera o HTML da paginação usando Bootstrap 5.
+ * Os links usam data-page para navegação via JS (preserva query string).
+ * @param {number} current Página atual (1-based)
+ * @param {number} total   Total de páginas
+ * @returns {string} HTML da paginação ou '' quando só há 1 página
  */
 function pagination(current, total) {
-    let html = `
-        <nav class="mt-1" aria-label="Paginação">
-            <ul class="pagination nav-tabs-scroll is-scrollable p-2 align-items-center pb-0 mb-0">
-    `;
+    if (total <= 1) return '';
 
-    // Botão: Ir para primeira página
-    html += `
-        <li class="page-item mr-2 ${current <= 1 ? 'disabled' : ''}">
-            <a class="${current <= 1 ? 'disabled ' : ''}page-link btn btn-sm btn-bgc-tp py-25 px-3 radius-3px text-600 btn-light-black border-0 ${current <= 1 ? '' : 'btn-h-light-primary btn-a-light-primary'}"
-            href="javascript:void(0)"
-            data-page="1">
-                <i class="fa fa-angle-double-left"></i>
-            </a>
-        </li>
-    `;
+    const dis  = (cond) => cond ? ' disabled' : '';
+    const act  = (p)    => p === current ? ' active' : '';
+    const link = (page, label, title) =>
+        `<li class="page-item${dis(page < 1 || page > total || page === current)}">` +
+        `<a class="page-link" href="javascript:void(0)" data-page="${page}"${title ? ` aria-label="${title}"` : ''}>` +
+        `${label}</a></li>`;
 
-    // Botão: Página anterior
-    html += `
-        <li class="page-item mr-2 ${current === 1 ? 'disabled' : ''}">
-            <a class="${current === 1 ? 'disabled ' : ''}page-link btn btn-sm btn-bgc-tp py-25 px-3 radius-3px text-600 btn-light-black border-0 ${current === 1 ? '' : 'btn-h-light-primary btn-a-light-primary'}"
-            href="javascript:void(0)"
-            data-page="${current - 1}">
-                <i class="fa fa-angle-left"></i>
-            </a>
-        </li>
-    `;
+    let html = `<nav aria-label="Paginação" class="mt-4 d-flex justify-content-center">` +
+               `<ul class="pagination">`;
 
-    // Números das páginas
-    const added = new Set();
-    const add = (p) => {
-        if (p >= 1 && p <= total) {
-            added.add(p);
-        }
-    };
+    // Primeira / Anterior
+    html += link(1, '<i class="fas fa-angles-left"></i>', 'Primeira página');
+    html += link(current - 1, '<i class="fas fa-chevron-left"></i>', 'Página anterior');
 
-    for (let i = current - 2; i <= current + 2; i++) {
-        add(i);
+    // Janela de páginas (current ± 2) com ellipsis
+    const from = Math.max(1, current - 2);
+    const to   = Math.min(total, current + 2);
+
+    if (from > 1) html += `<li class="page-item disabled"><a class="page-link">…</a></li>`;
+
+    for (let p = from; p <= to; p++) {
+        html += `<li class="page-item${act(p)}">` +
+                `<a class="page-link" href="javascript:void(0)" data-page="${p}">${p}</a></li>`;
     }
 
-    const ordered = [...added].sort((a, b) => a - b);
+    if (to < total) html += `<li class="page-item disabled"><a class="page-link">…</a></li>`;
 
-    ordered.forEach(p => {
-        html += `
-            <li class="page-item mr-15">
-                <a class="${p === current ? 'active ' : ''}page-link btn py-25 px-3 btn-sm border-0 radius-3px text-600 btn-light-black btn-h-primary btn-a-primary"
-                href="javascript:void(0)"
-                data-page="${p}">
-                    ${p}
-                </a>
-            </li>
-        `;
-    });
+    // Próxima / Última
+    html += link(current + 1, '<i class="fas fa-chevron-right"></i>', 'Próxima página');
+    html += link(total, '<i class="fas fa-angles-right"></i>', 'Última página');
 
-    // Botão: Próxima página
-    html += `
-        <li class="page-item">
-            <a class="page-link btn btn-sm btn-bgc-tp py-25 px-3 radius-3px text-600 btn-light-grey border-0 ${current === total ? 'disabled' : 'btn-h-light-primary btn-a-light-primary'}"
-            href="javascript:void(0)"
-            data-page="${current + 1}">
-                <i class="fa fa-angle-right"></i>
-            </a>
-        </li>
-    `;
-
-    // Botão: Ir para última página
-    html += `
-        <li class="page-item ml-2 ${current >= total ? 'disabled' : ''}">
-            <a class="page-link btn btn-sm btn-bgc-tp py-25 px-3 radius-3px text-600 btn-light-grey border-0 ${current >= total ? 'disabled' : 'btn-h-light-primary btn-a-light-primary'}"
-            href="javascript:void(0)"
-            data-page="${total}">
-                <i class="fa fa-angle-double-right"></i>
-            </a>
-        </li>
-    `;
-
-    html += `
-            </ul>
-        </nav>
-    `;
-
+    html += `</ul></nav>`;
     return html;
 }
 

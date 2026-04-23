@@ -28,8 +28,8 @@ $confirmadas = array_filter($reservasLocador ?? [], fn($r) => $r['status'] === '
     </div>
     <div class="col-md-4">
         <div class="sf-stat-card">
-            <span class="sf-stat-icon" style="color:#D97706;"><i class="fas fa-clock"></i></span>
-            <p class="sf-stat-value" style="color:#D97706;"><?= count($pendentes) ?></p>
+            <span class="sf-stat-icon" style="color:var(--sf-warning-text);"><i class="fas fa-clock"></i></span>
+            <p class="sf-stat-value" style="color:var(--sf-warning-text);"><?= count($pendentes) ?></p>
             <p class="sf-stat-label">Aguardando</p>
         </div>
     </div>

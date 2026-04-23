@@ -18,6 +18,24 @@ class Pagamento extends Model
         return $stmt->fetch();
     }
 
+    public function findByAsaasId(string $asaasId): array|false
+    {
+        $stmt = $this->db->prepare(
+            "SELECT * FROM pagamentos WHERE asaas_id = ? LIMIT 1"
+        );
+        $stmt->execute([$asaasId]);
+        return $stmt->fetch();
+    }
+
+    public function marcarPago(int $id, string $asaasId): bool
+    {
+        return $this->update($id, [
+            'status'   => 'PAGO',
+            'asaas_id' => $asaasId,
+            'pago_em'  => date('Y-m-d H:i:s'),
+        ]);
+    }
+
     public function confirmar(int $id): bool
     {
         return $this->update($id, [

@@ -12,7 +12,7 @@ class Avaliacao extends Model
     public function findByChacaraComUsuario(int $chacaraId): array
     {
         $stmt = $this->db->prepare("
-            SELECT a.*, u.nome AS cliente_nome
+            SELECT a.*, u.nome AS cliente_nome, u.foto_url AS cliente_foto
             FROM avaliacoes a
             INNER JOIN usuarios u ON u.id = a.cliente_id
             WHERE a.chacara_id = ?

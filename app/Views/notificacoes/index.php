@@ -14,9 +14,9 @@
             <div class="list-group-item d-flex justify-content-between align-items-start gap-3 py-3">
                 <div class="d-flex gap-2 align-items-start">
                     <?php if (!$n['lida']): ?>
-                        <span class="mt-1 flex-shrink-0" style="width:8px; height:8px; border-radius:50%; background:var(--sf-primary); display:inline-block;"></span>
+                        <span class="sf-dot-unread mt-1 flex-shrink-0"></span>
                     <?php else: ?>
-                        <span class="flex-shrink-0" style="width:8px;"></span>
+                        <span class="flex-shrink-0" style="width:8px;display:inline-block;"></span>
                     <?php endif; ?>
                     <div>
                         <p class="fw-semibold small mb-1"><?= htmlspecialchars($n['titulo']) ?></p>

@@ -9,7 +9,9 @@ public/vendor/
 public/uploads/
 
 # ─── Configurações com credenciais ──────────────────────────────
+config/env.php
 config/database.php
+config/asaas.php
 
 # ─── Cache / logs do PHP ────────────────────────────────────────
 *.log
